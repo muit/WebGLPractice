@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+    <script>
+        
+        function load(){
+            var canvas = document.getElementById("canvas");
+
+            this.glc = new GLC(canvas);
+            glc.init();
+
+        }
+
+        //==============================
+        //  GL Control Class
+        //==============================
+        var GLC = function(canvas){
+            this.canvas = canvas;
+            this.gl = canvas.getContext("webgl") || canvas.getContext("experimental-webgl");
+        }
+
+        GLC.prototype = {
+            init: function(){
+                if(!this.gl){
+                    alert("Your browser doesn´t support WebGl ;(");
+                    return;
+                }
+                this.initGL();
+            },
+
+            initGL: function(){
+                this.gl.clearColor(0.0, 0.0, 0.0, 1.0);
+                this.gl.clearDepth(1.0);
+                this.gl.enable(this.gl.DEPTH_TEST);
+                this.gl.depthFunc(this.gl.LEQUAL);
+                this.AspectRatio = canvas.width/canvas.height;
+            },
+
+            initShaders: function(){
+
+            },
+
+            initBuffers: function(){
+
+            },
+        }
+
+
+    </script>
+</head>
+<body onLoad="load()">
+    <canvas id="canvas" width="500" height="500"></canvas>
+</body>
+</html>
