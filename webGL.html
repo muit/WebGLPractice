@@ -1,8 +1,11 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <script id="VertexShader" type="x-shader/x-vertex" src="shaders/example.vert"></script>
-    <script id="FragmentShader" type="x-shader/x-fragment" src="shaders/example.frag"></script>
+    <!--Shader Vertex & Shader Fragments should be in order with -->
+
+    <!--Shader: example -->
+    <script class="VertexShader" type="x-shader/x-vertex" src="shaders/example.vert"></script>
+    <script class="FragmentShader" type="x-shader/x-fragment" src="shaders/example.frag"></script>
 
     <script>
         function load(){
@@ -17,11 +20,11 @@
         //==============================
         var GLC = function(canvas){
             this.canvas = canvas;
-            this.gl = canvas.getContext("webgl") || canvas.getContext("experimental-webgl");
         }
 
         GLC.prototype = {
             init: function(){
+                this.gl = canvas.getContext("webgl") || canvas.getContext("experimental-webgl");
                 if(!this.gl){
                     alert("Your browser doesn't support WebGL  :(");
                     return;
@@ -40,6 +43,59 @@
             },
 
             initShaders: function(){
+                var FShaders = document.getElementsByClassName("VertexShader");
+                var VShaders = document.getElementsByClassName("FragmentShader");
+                this.ShaderPrograms = [];
+
+
+                if(FShaders.length <= 0 || VShaders.length <= 0){
+                    alert("Could not find Shaders!");
+                    return;
+                }
+                else if(FShaders.length != VShaders.length){
+                    alert("Error, Shader without his pair.");
+                    return;
+                }
+                var loadShader = function(script){
+                    var code = "";
+                    var currentChild = Script.firstChild;
+                    while(currentChild){
+                        if(currentChild.nodeType == currentChild.TEXT_NODE)
+                            code += currentChild.textContent;
+                        currentChild = currentChild.nextSibling
+                    }
+                    return code;
+                }
+
+                // Load Shaders
+                for(var i = 0, len = FShaders.length; i < len; i++){
+                    //Fragment Shader
+                    var code = loadShader(FShaders[i]);
+                    FShaders[i] = this.gl.createShader(this.gl.FRAGMENT_SHADER);
+                    this.gl.shaderSource(FShaders[i], code);
+                    this.gl.compileShader(FShaders[i]);
+
+                    //Vertex Shader
+                    var code = loadShader(VShaders[i]);
+                    VShaders[i] = this.gl.createShader(this.gl.VERTEX_SHADER);
+                    this.gl.shaderSource(VShaders[i], code);
+                    this.gl.compileShader(VShaders[i]);
+
+                    //Shader Program
+                    this.ShaderProgram[i] = this.gl.createProgram();
+                    this.gl.attachShader(this.ShaderPrograms[i], FShaders[i]);
+                    this.gl.attachShader(this.ShaderPrograms[i], VShaders[i]);
+                    this.gl.linkProgram(this.ShaderPrograms[i]);
+                    this.gl.useProgram(this.ShaderPrograms[i]);
+
+                    //Link Vertex Position Attribute from Shader
+                    var vertexPosition = this.gl.getAttibLocation(this.ShaderPrograms[i], "VertexPosition");
+                    this.gl.enableVertexAttribArray(vertexPosition);
+
+                    //Link Texture Coordinate Attribute from Shader
+                    var vertexTexture = this.gl.getAttibLocation(this.ShaderPrograms[i], "TextureCoord");
+                    this.gl.enableVertexAttribArray(vertexTexture);
+                }
 
             },
 
