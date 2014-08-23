@@ -1,15 +1,15 @@
 <!DOCTYPE html>
 <html>
 <head>
+    <script id="VertexShader" type="x-shader/x-vertex" src="shaders/example.vert"></script>
+    <script id="FragmentShader" type="x-shader/x-fragment" src="shaders/example.frag"></script>
 
     <script>
-        
         function load(){
             var canvas = document.getElementById("canvas");
 
             this.glc = new GLC(canvas);
             glc.init();
-
         }
 
         //==============================
@@ -23,10 +23,12 @@
         GLC.prototype = {
             init: function(){
                 if(!this.gl){
-                    alert("Your browser doesn´t support WebGl ;(");
+                    alert("Your browser doesn't support WebGL  :(");
                     return;
                 }
                 this.initGL();
+                this.initShaders();
+                this.initBuffers();
             },
 
             initGL: function(){
@@ -34,7 +36,7 @@
                 this.gl.clearDepth(1.0);
                 this.gl.enable(this.gl.DEPTH_TEST);
                 this.gl.depthFunc(this.gl.LEQUAL);
-                this.AspectRatio = canvas.width/canvas.height;
+                this.aspectRatio = canvas.width/canvas.height;
             },
 
             initShaders: function(){
