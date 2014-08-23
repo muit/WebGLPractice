@@ -4,8 +4,30 @@
     <!--Shader Vertex & Shader Fragments should be in order with -->
 
     <!--Shader: example -->
-    <script class="VertexShader" type="x-shader/x-vertex" src="shaders/example.vert"></script>
-    <script class="FragmentShader" type="x-shader/x-fragment" src="shaders/example.frag"></script>
+    <script class="VertexShader" type="x-shader/x-vertex">
+        attribute highp vec3 VertexPosition;
+        attribute highp vec2 TextureCoord;
+
+        uniform highp mat4 TransformationMatrix;
+        uniform highp mat4 PerspectiveMatrix;
+
+        varying highp vec2 vTextureCoord;
+
+        void main(void){
+            gl_position = PerspectiveMatrix * TransformationMatrix * vec4(VertexPosition, 1.0);
+            vTextureCoord = TextureCoord;
+        }
+    </script>
+    <script class="FragmentShader" type="x-shader/x-fragment">
+        varying highp vTextureCoord;
+
+        uniform sampler2D uSampler;
+
+        void main(void){
+            highp vec4 texelColor = texture2D(uSampler, vec2(vTextureCoord.s, vTextureCoord.t));
+            gl_FragColor = texelColor
+        }
+    </script>
 
     <script>
         function load(){
@@ -58,7 +80,7 @@
                 }
                 var loadShader = function(script){
                     var code = "";
-                    var currentChild = Script.firstChild;
+                    var currentChild = script.firstChild;
                     while(currentChild){
                         if(currentChild.nodeType == currentChild.TEXT_NODE)
                             code += currentChild.textContent;
