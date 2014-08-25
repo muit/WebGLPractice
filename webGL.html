@@ -62,6 +62,8 @@
                         self.gl.shaderSource(programFile.vertex, code);
                         self.gl.compileShader(programFile.vertex);
 
+                        console.log(self.gl.getShaderInfoLog(programFile.vertex));
+
                         loadFragment(programFile);
                     });
                 }
@@ -71,6 +73,8 @@
                         programFile.fragment = self.gl.createShader(self.gl.FRAGMENT_SHADER);
                         self.gl.shaderSource(programFile.fragment, code);
                         self.gl.compileShader(programFile.fragment);
+
+                        console.log(self.gl.getShaderInfoLog(programFile.fragment));
 
                         loadProgram(programFile);
                     });
@@ -94,7 +98,6 @@
                     self.shaderPrograms[i] = shaderProgram;
                 }
 
-                // Load Shaders
                 for(var i = 0, len = programFiles.length; i < len; i++){
                     //load Vertex Fragments & program
                     loadVertex(programFiles[i]);
