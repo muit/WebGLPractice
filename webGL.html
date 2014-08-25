@@ -1,34 +1,6 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <!--Shader Vertex & Shader Fragments should be in order with -->
-
-    <!--Shader: example -->
-    <script class="VertexShader" type="x-shader/x-vertex">
-        attribute highp vec3 VertexPosition;
-        attribute highp vec2 TextureCoord;
-
-        uniform highp mat4 TransformationMatrix;
-        uniform highp mat4 PerspectiveMatrix;
-
-        varying highp vec2 vTextureCoord;
-
-        void main(void){
-            gl_position = PerspectiveMatrix * TransformationMatrix * vec4(VertexPosition, 1.0);
-            vTextureCoord = TextureCoord;
-        }
-    </script>
-    <script class="FragmentShader" type="x-shader/x-fragment">
-        varying highp vTextureCoord;
-
-        uniform sampler2D uSampler;
-
-        void main(void){
-            highp vec4 texelColor = texture2D(uSampler, vec2(vTextureCoord.s, vTextureCoord.t));
-            gl_FragColor = texelColor
-        }
-    </script>
-
     <script>
         function load(){
             var canvas = document.getElementById("canvas");
@@ -37,13 +9,13 @@
             glc.init();
         }
 
+
         //==============================
         //  GL Control Class
         //==============================
         var GLC = function(canvas){
             this.canvas = canvas;
         }
-
         GLC.prototype = {
             init: function(){
                 this.gl = canvas.getContext("webgl") || canvas.getContext("experimental-webgl");
@@ -65,69 +37,74 @@
             },
 
             initShaders: function(){
-                var FShaders = document.getElementsByClassName("VertexShader");
-                var VShaders = document.getElementsByClassName("FragmentShader");
                 this.shaderPrograms = [];
+                var self = this;
 
+                //Link all the shaders here.
+                var programFiles = [
+                    {vertex: "example.vert", fragment: "example.frag"},
+                ];
 
-                if(FShaders.length <= 0 || VShaders.length <= 0){
-                    alert("Could not find Shaders!");
-                    return;
-                }
-                else if(FShaders.length != VShaders.length){
-                    alert("Error, Shader without his pair.");
-                    return;
-                }
-                var loadShader = function(script){
-                    var code = "";
-                    var currentChild = script.firstChild;
-                    while(currentChild){
-                        if(currentChild.nodeType == currentChild.TEXT_NODE)
-                            code += currentChild.textContent;
-                        currentChild = currentChild.nextSibling
+                //get shader code with name file
+                var getShaderCode = function(file, response){
+                    var client = new XMLHttpRequest();
+                    client.open('GET', 'shaders/'+file);
+                    client.onreadystatechange = function() {
+                        if (client.readyState == 4 && client.status == 200)
+                            response(client.responseText);
                     }
-                    return code;
+                    client.send();
+                }
+
+                var loadVertex = function(programFile){
+                    getShaderCode(programFile.vertex, function(code){
+                        programFile.vertex = self.gl.createShader(self.gl.VERTEX_SHADER);
+                        self.gl.shaderSource(programFile.vertex, code);
+                        self.gl.compileShader(programFile.vertex);
+
+                        loadFragment(programFile);
+                    });
+                }
+
+                var loadFragment = function(programFile){
+                    getShaderCode(programFile.fragment, function(code){
+                        programFile.fragment = self.gl.createShader(self.gl.FRAGMENT_SHADER);
+                        self.gl.shaderSource(programFile.fragment, code);
+                        self.gl.compileShader(programFile.fragment);
+
+                        loadProgram(programFile);
+                    });
+                }
+                
+                var loadProgram = function(programFile){
+                    //Shader Program
+                    var shaderProgram = self.gl.createProgram();
+                    self.gl.attachShader(shaderProgram, programFile.fragment);
+                    self.gl.attachShader(shaderProgram, programFile.vertex);
+                    self.gl.linkProgram(shaderProgram);
+                    self.gl.useProgram(shaderProgram);
+
+                    //Link Vertex Position Attribute from Shader
+                    var vertexPosition = self.gl.getAttribLocation(shaderProgram, "VertexPosition");
+                    self.gl.enableVertexAttribArray(vertexPosition);
+
+                    //Link Texture Coordinate Attribute from Shader
+                    var vertexTexture = self.gl.getAttribLocation(shaderProgram, "TextureCoord");
+                    self.gl.enableVertexAttribArray(vertexTexture);
+                    self.shaderPrograms[i] = shaderProgram;
                 }
 
                 // Load Shaders
-                for(var i = 0, len = FShaders.length; i < len; i++){
-                    //Fragment Shader
-                    var code = loadShader(FShaders[i]);
-                    FShader = this.gl.createShader(this.gl.FRAGMENT_SHADER);
-                    this.gl.shaderSource(FShader, code);
-                    this.gl.compileShader(FShader);
-
-                    //Vertex Shader
-                    var code = loadShader(VShaders[i]);
-                    VShader = this.gl.createShader(this.gl.VERTEX_SHADER);
-                    this.gl.shaderSource(VShader, code);
-                    this.gl.compileShader(VShader);
-
-                    //Shader Program
-                    var shaderProgram = this.gl.createProgram();
-                    this.gl.attachShader(shaderProgram, FShader);
-                    this.gl.attachShader(shaderProgram, VShader);
-                    this.gl.linkProgram(shaderProgram);
-                    this.gl.useProgram(shaderProgram);
-
-                    //Link Vertex Position Attribute from Shader
-                    var vertexPosition = this.gl.getAttribLocation(shaderProgram, "VertexPosition");
-                    this.gl.enableVertexAttribArray(vertexPosition);
-
-                    //Link Texture Coordinate Attribute from Shader
-                    var vertexTexture = this.gl.getAttribLocation(shaderProgram, "TextureCoord");
-                    this.gl.enableVertexAttribArray(vertexTexture);
-                    this.shaderPrograms[i] = shaderProgram;
+                for(var i = 0, len = programFiles.length; i < len; i++){
+                    //load Vertex Fragments & program
+                    loadVertex(programFiles[i]);
                 }
-
             },
 
             initBuffers: function(){
 
             },
         }
-
-
     </script>
 </head>
 <body onLoad="load()">
